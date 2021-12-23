@@ -60,3 +60,4 @@ Licensed under the MIT license, see LICENSE.MD
 
 ## 📖 Open-source libraries
 - [Discord.Net](https://github.com/discord-net/Discord.Net)
+- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
