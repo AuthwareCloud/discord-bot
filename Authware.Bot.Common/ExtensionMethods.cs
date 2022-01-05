@@ -1,4 +1,9 @@
-﻿namespace Authware.Bot.Common;
+﻿using Authware.Bot.Common.Utils;
+using Discord;
+using Discord.Interactions;
+using Discord.WebSocket;
+
+namespace Authware.Bot.Common;
 
 public static class ExtensionMethods
 {
@@ -13,5 +18,28 @@ public static class ExtensionMethods
         }
 
         return newList;
+    }
+    
+    public static bool IsTimedOut(this IGuildUser user)
+    {
+        return user.TimedOutUntil > DateTimeOffset.Now;
+    }
+
+    public static async Task SuccessAsync(this SocketInteraction context, string message, bool ephemeral)
+    {
+        var embed = new AuthwareEmbedBuilder()
+                   .WithDescription($"<:on:925407585400676392>   {message}")
+                   .Build();
+
+        await context.FollowupAsync(embed: embed, ephemeral: ephemeral);
+    }
+
+    public static async Task ErrorAsync(this SocketInteraction context, string message, bool ephemeral)
+    {
+        var embed = new AuthwareEmbedBuilder()
+                   .WithDescription($"<:off:925407585262252072>   {message}")
+                   .Build();
+
+        await context.FollowupAsync(embed: embed, ephemeral: ephemeral);
     }
 }

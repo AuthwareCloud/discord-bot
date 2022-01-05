@@ -7,11 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Discord.Net.Interactions" Version="3.0.0" />
+      <PackageReference Include="Discord.Net.Interactions" Version="3.1.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Authware.Bot.Common\Authware.Bot.Common.csproj" />
+      <ProjectReference Include="..\Authware.Bot.Services\Authware.Bot.Services.csproj" />
     </ItemGroup>
 
 </Project>
