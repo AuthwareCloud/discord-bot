@@ -2,33 +2,49 @@
 using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
+using Serilog;
 
 namespace Authware.Bot.Services;
 
 public class LoggingService
 {
-    public LoggingService(DiscordSocketClient client, InteractionService commands)
+    private readonly ILogger _logger;
+
+    public LoggingService(DiscordSocketClient client, InteractionService commands, ILogger logger)
     {
+        _logger = logger;
         client.Log += LogAsync;
         commands.Log += LogAsync;
     }
 
-    private static Task LogAsync(LogMessage message)
+    private Task LogAsync(LogMessage message)
     {
         if (message.Exception is CommandException cmdException)
-        {
-            Console.WriteLine($"[{message.Source}/{message.Severity}] {cmdException.Command.Aliases[0]}"
-                              + $" failed to execute in {cmdException.Context.Channel}.");
-            Console.WriteLine(cmdException);
-        }
+            _logger.Fatal(cmdException, "Failed to execute command");
         else if (message.Exception is not null)
-        {
-            Console.WriteLine($"[{message.Source}/{message.Severity}] {message.Exception}");
-        }
+            _logger.Fatal(message.Exception, "Exception thrown");
         else
-        {
-            Console.WriteLine("[{0}/{1}] {2}", message.Source, message.Severity, message.Message);
-        }
+            switch (message.Severity)
+            {
+                case LogSeverity.Critical:
+                    _logger.Fatal(message.Message);
+                    break;
+                case LogSeverity.Debug:
+                    _logger.Debug(message.Message);
+                    break;
+                case LogSeverity.Error:
+                    _logger.Error(message.Message);
+                    break;
+                case LogSeverity.Info:
+                    _logger.Information(message.Message);
+                    break;
+                case LogSeverity.Verbose:
+                    _logger.Verbose(message.Message);
+                    break;
+                case LogSeverity.Warning:
+                    _logger.Warning(message.Message);
+                    break;
+            }
 
         return Task.CompletedTask;
     }
