@@ -11,24 +11,25 @@ Once you've compiled the bot, you need an 'appsettings.json' file, we've exclude
 
 ```js
 {
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "System": "Information",
-      "Microsoft": "Information"
+    "Logging": {
+        "LogLevel": {
+            "Default": "Debug",
+            "System": "Information",
+            "Microsoft": "Information"
+        }
+    },
+    "Token": "Bot token here",
+    "GuildId": 123456789012345678,
+    "TestingGuildId": 123456789012345678,
+    "SupportRole": "Support",
+    "DeveloperRole": "Developer",
+    "LogFileLocation": "bot.log",
+    "LavalinkOptions": {
+        "WebsocketEndpoint": "ws://localhost:2333",
+        "RestEndpoint": "http://localhost:2333",
+        "Password": "Lavalink secret here",
+        "NodeId": "aw"
     }
-  },
-  "SocketConfig": {
-    "MessageCacheSize": 1000,
-    "UseSystemClock": true,
-    "AlwaysAcknowledgeInteractions": true,
-    "AlwaysDownloadUsers": true
-  },
-  "AntiSpam": {
-    "StrikeThreshold": 5,
-    "MessageInterval": 0.75
-  },
-  "Token": "Your bot token"
 }
 ```
 
