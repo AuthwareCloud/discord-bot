@@ -18,7 +18,7 @@ public class ModerationService : IModerationService
     private readonly List<WarnedUser> _warnedUsers = new();
 
     public ModerationService(IWritableConfigurationService<AuthwareConfiguration> writableConfiguration,
-                             IConfiguration configuration, DiscordSocketClient discord)
+        IConfiguration configuration, DiscordSocketClient discord)
     {
         _writableConfiguration = writableConfiguration;
         _configuration = configuration;
@@ -30,17 +30,20 @@ public class ModerationService : IModerationService
         _discord.ReactionRemoved += DiscordOnReactionRemoved;
     }
 
-    private async Task DiscordOnReactionRemoved(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+    private async Task DiscordOnReactionRemoved(Cacheable<IUserMessage, ulong> arg1,
+        Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
     {
         await UpdateWarnedUsers(await _discord.GetUserAsync(arg3.UserId) as SocketGuildUser);
     }
 
-    private async Task DiscordOnReactionAdded(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+    private async Task DiscordOnReactionAdded(Cacheable<IUserMessage, ulong> arg1,
+        Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
     {
         await UpdateWarnedUsers(await _discord.GetUserAsync(arg3.UserId) as SocketGuildUser);
     }
 
-    private async Task DiscordOnMessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
+    private async Task DiscordOnMessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2,
+        ISocketMessageChannel arg3)
     {
         await UpdateWarnedUsers(arg2.Author as SocketGuildUser);
     }
@@ -96,11 +99,11 @@ public class ModerationService : IModerationService
             var warnedUser = _warnedUsers.FirstOrDefault(x => x.User.Id == user.Id);
             warnedUser.WarnCount++;
             if (warnedUser.WarnCount < _writableConfiguration.Load().StrikeThreshold) return 0;
-            
+
             // Punish user
             warnedUser.IsBeingPunished = true;
             await warnedUser.User.SetTimeOutAsync(TimeSpan.FromMinutes(5));
-                
+
             await CreateCaseAsync(user, moderatingUser, "Timed out", reason);
         }
 
@@ -109,19 +112,24 @@ public class ModerationService : IModerationService
 
     public async Task<int> CreateCaseAsync(IUser user, IUser moderatingUser, string action, string reason)
     {
+#if DEBUG
+        var guild = _discord.GetGuild(ulong.Parse(_configuration["TestingGuildId"]));
+#else
         var guild = _discord.GetGuild(ulong.Parse(_configuration["GuildId"]));
+#endif
+        
         var channel = guild.GetTextChannel(_writableConfiguration.Load().ModerationChannel);
 
         var caseNumber = GenerateCaseNumber();
 
         var embed = new AuthwareEmbedBuilder()
-                   .WithAuthor($"{moderatingUser.Username}#{moderatingUser.Discriminator}",
-                               moderatingUser.GetAvatarUrl())
-                   .WithTitle($"Case #{caseNumber}")
-                   .AddField("Action", action, true)
-                   .AddField("User", user.Mention, true)
-                   .AddField("Reason", reason, true)
-                   .Build();
+            .WithAuthor($"{moderatingUser.Username}#{moderatingUser.Discriminator}",
+                moderatingUser.GetAvatarUrl())
+            .WithTitle($"Case #{caseNumber}")
+            .AddField("Action", action, true)
+            .AddField("User", user.Mention, true)
+            .AddField("Reason", reason, true)
+            .Build();
 
         await channel.SendMessageAsync(embed: embed);
 
@@ -130,7 +138,7 @@ public class ModerationService : IModerationService
         {
             var dmChannel = await user.CreateDMChannelAsync();
             await dmChannel.SendMessageAsync($"You've been moderated in **{guild.Name}**, here's your case info",
-                                             embed: embed);
+                embed: embed);
         }
         catch (HttpException)
         {

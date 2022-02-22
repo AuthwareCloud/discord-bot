@@ -26,7 +26,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         var guildUser = Context.User as SocketGuildUser;
         if (guildUser.VoiceChannel is null)
         {
-            await Context.Interaction.ErrorAsync("You must be in a voice channel to play a song!", false);
+            await Context.Interaction.ErrorAsync("Cannot leave", "You must be in a voice channel for me to leave!", false);
             return;
         }
 
@@ -34,7 +34,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (player is not {State: PlayerState.Playing})
         {
-            await Context.Interaction.ErrorAsync("There are currently no songs queued!", false);
+            await Context.Interaction.ErrorAsync("Cannot leave", "There are currently no songs queued!", false);
             return;
         }
         
@@ -42,7 +42,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         await player.DestroyAsync();
         await player.DisconnectAsync();
 
-        await Context.Interaction.SuccessAsync("Left the voice channel!", false);
+        await Context.Interaction.SuccessAsync("Bye!", "Left the voice channel!", false);
     }
 
     [SlashCommand("replay", "Replays the current song")]
@@ -53,7 +53,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         var guildUser = Context.User as SocketGuildUser;
         if (guildUser.VoiceChannel is null)
         {
-            await Context.Interaction.ErrorAsync("You must be in a voice channel to play a song!", false);
+            await Context.Interaction.ErrorAsync("Cannot replay", "You must be in a voice channel to play a song!", false);
             return;
         }
         
@@ -61,13 +61,13 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (player is not {State: PlayerState.Playing})
         {
-            await Context.Interaction.ErrorAsync("There are currently no songs queued!", false);
+            await Context.Interaction.ErrorAsync("Cannot replay", "There are currently no songs queued!", false);
             return;
         }
         
         await player.ReplayAsync();
 
-        await Context.Interaction.SuccessAsync("Replayed the current song!", false);
+        await Context.Interaction.SuccessAsync("Replayed", "Replayed the current song!", false);
     }
 
     [SlashCommand("skip", "Skips to the next song in the queue")]
@@ -78,7 +78,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         var guildUser = Context.User as SocketGuildUser;
         if (guildUser.VoiceChannel is null)
         {
-            await Context.Interaction.ErrorAsync("You must be in a voice channel to play a song!", false);
+            await Context.Interaction.ErrorAsync("Cannot skip", "You must be in a voice channel to play a song!", false);
             return;
         }
         
@@ -86,19 +86,19 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (player is not {State: PlayerState.Playing} || player.Queue.IsEmpty)
         {
-            await Context.Interaction.ErrorAsync("There are currently no songs queued!", false);
+            await Context.Interaction.ErrorAsync("Cannot skip", "There are currently no songs queued!", false);
             return;
         }
 
         if (amount < 1)
         {
-            await Context.Interaction.ErrorAsync("You must skip an amount of songs that is greater or equal to one!", false);
+            await Context.Interaction.ErrorAsync("Cannot skip", "You must skip an amount of songs that is greater or equal to one!", false);
             return;
         }
 
         await player.SkipAsync(amount);
 
-        await Context.Interaction.SuccessAsync($"Skipped *{amount}* song(s) ahead!", false);
+        await Context.Interaction.SuccessAsync("Skipped",$"Skipped *{amount}* song(s) ahead!", false);
     }
 
     [SlashCommand("queue", "Gets all the songs in the queue")]
@@ -110,7 +110,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (player is not {State: PlayerState.Playing})
         {
-            await Context.Interaction.ErrorAsync("There are currently no songs queued!", false);
+            await Context.Interaction.ErrorAsync("Cannot show queue", "There are currently no songs queued!", false);
             return;
         }
 
@@ -145,7 +145,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         var guildUser = Context.User as SocketGuildUser;
         if (guildUser.VoiceChannel is null)
         {
-            await Context.Interaction.ErrorAsync("You must be in a voice channel to stop a song!", false);
+            await Context.Interaction.ErrorAsync("Cannot stop playing", "You must be in a voice channel to stop a song!", false);
             return;
         }
 
@@ -153,13 +153,13 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (player is not {State: PlayerState.Playing})
         {
-            await Context.Interaction.ErrorAsync("There is currently no song playing!", false);
+            await Context.Interaction.ErrorAsync("Cannot stop playing","There is currently no song playing!", false);
             return;
         }
 
         await player.StopAsync();
 
-        await Context.Interaction.SuccessAsync("Stopped the currently playing song!", false);
+        await Context.Interaction.SuccessAsync("Stopped", "Stopped the currently playing song!", false);
     }
 
     [SlashCommand("play", "Plays the specific song")]
@@ -170,7 +170,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         var guildUser = Context.User as SocketGuildUser;
         if (guildUser.VoiceChannel is null)
         {
-            await Context.Interaction.ErrorAsync("You must be in a voice channel to play a song!", false);
+            await Context.Interaction.ErrorAsync("Cannot play song","You must be in a voice channel to play a song!", false);
             return;
         }
 
@@ -182,7 +182,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (track is null)
         {
-            await Context.Interaction.ErrorAsync("Couldn't find anything from that song query!", false);
+            await Context.Interaction.ErrorAsync("Cannot play song","Couldn't find anything from that song query!", false);
             return;
         }
 

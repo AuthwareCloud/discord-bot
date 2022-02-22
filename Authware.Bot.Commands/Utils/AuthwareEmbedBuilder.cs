@@ -6,6 +6,8 @@ public class AuthwareEmbedBuilder : EmbedBuilder
 {
     public AuthwareEmbedBuilder()
     {
-        Color = new Color(68, 180, 112);
+        WithFooter("https://authware.org");
+        WithCurrentTimestamp();
+        WithColor(new Color(68, 180, 112));
     }
 }

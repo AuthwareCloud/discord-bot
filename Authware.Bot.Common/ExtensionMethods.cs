@@ -51,19 +51,21 @@ public static class ExtensionMethods
         return user.TimedOutUntil > DateTimeOffset.Now;
     }
 
-    public static async Task SuccessAsync(this SocketInteraction context, string message, bool ephemeral)
+    public static async Task SuccessAsync(this SocketInteraction context, string title, string message, bool ephemeral)
     {
         var embed = new AuthwareEmbedBuilder()
-            .WithDescription($"<:on:925407585400676392>   {message}")
+            .WithTitle(title)
+            .WithDescription(message)
             .Build();
 
         await context.FollowupAsync(embed: embed, ephemeral: ephemeral);
     }
 
-    public static async Task ErrorAsync(this SocketInteraction context, string message, bool ephemeral)
+    public static async Task ErrorAsync(this SocketInteraction context, string title, string message, bool ephemeral)
     {
         var embed = new AuthwareEmbedBuilder()
-            .WithDescription($"<:off:925407585262252072>   {message}")
+            .WithTitle(title)
+            .WithDescription(message)
             .Build();
 
         await context.FollowupAsync(embed: embed, ephemeral: ephemeral);
