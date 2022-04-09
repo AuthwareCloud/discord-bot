@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Net.Http.Headers;
+using System.Reflection;
 using Authware.Bot.Commands;
 using Authware.Bot.Common;
 using Authware.Bot.Common.Models;
@@ -206,6 +207,8 @@ public class Startup
 
         _logger.Information("Initializing inactivity tracking...");
         _provider.GetRequiredService<InactivityTrackingService>().BeginTracking();
+
+        await _client.SetGameAsync("the #1 cloud authentication solution");
     }
 
     public async Task RunAsync()
@@ -234,6 +237,15 @@ public class Startup
             .AddSingleton<FilterService>()
             .AddSingleton<IStartupService, StartupService>()
             .AddSingleton<IModerationService, ModerationService>()
-            .BuildServiceProvider();
+            .AddHttpClient<HttpClient>("authware", options =>
+            {
+                options.BaseAddress = new Uri("https://api.authware.org/");
+                options.DefaultRequestVersion = new Version("2.0.0.0");
+                options.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+                options.DefaultRequestHeaders.TryAddWithoutValidation("Authorization",
+                    Configuration.GetValue<string>("Token"));
+                options.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Authware-DotNet", "1.0.0.0"));
+            })
+            .Services.BuildServiceProvider();
     }
 }

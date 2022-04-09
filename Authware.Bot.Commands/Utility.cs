@@ -127,6 +127,8 @@ public class Utility : InteractionModuleBase<SocketInteractionContext>
         "Gives you the 'Developer' role which allows access to the channels specifically for developers")]
     public async Task AddDevAsync()
     {
+        if (!_configuration.IsHomeGuild(Context.Guild.Id)) return;
+        
         await Context.Interaction.DeferAsync(true);
         
         // Get the support role (the users authorized to see the ticket) or create it if non existent

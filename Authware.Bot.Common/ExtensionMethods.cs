@@ -1,6 +1,7 @@
 ﻿using Authware.Bot.Common.Utils;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
 
 namespace Authware.Bot.Common;
 
@@ -19,9 +20,20 @@ public static class ExtensionMethods
         return newList;
     }
 
+    public static bool IsHomeGuild(this IConfiguration configuration, ulong guildId)
+    {
+#if DEBUG
+        var homeGuildId = configuration.GetValue<ulong>("TestingGuildId");
+#else
+        var homeGuildId = configuration.GetValue<ulong>("GuildId");
+#endif
+
+        return homeGuildId == guildId;
+    }
+
     public static string ToHms(this TimeSpan time)
     {
-        string converted = null;
+        var converted = string.Empty;
         converted += time.Days switch
         {
             0 => "",

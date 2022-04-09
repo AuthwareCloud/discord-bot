@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 namespace Authware.Bot.Commands;
 
 [Group("tickets", "Commands related to the tickets system")]
+[RequireContext(ContextType.Guild)]
 public class Tickets : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IConfiguration _configuration;
@@ -20,6 +21,8 @@ public class Tickets : InteractionModuleBase<SocketInteractionContext>
     [SlashCommand("new", "Creates a new ticket for the specified reason")]
     public async Task NewTicketAsync([Summary("type", "The type of query or issue you're experiencing")] TicketType type)
     {
+        if (!_configuration.IsHomeGuild(Context.Guild.Id)) return;
+        
         await Context.Interaction.DeferAsync(true);
 
         if (Context.Guild.Channels.Any(x => x.Name == $"ticket-{Context.User.Id}"))
