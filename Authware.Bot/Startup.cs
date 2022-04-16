@@ -61,7 +61,7 @@ public class Startup
         _client = client ?? new DiscordSocketClient(new DiscordSocketConfig
         {
             DefaultRetryMode = RetryMode.RetryRatelimit,
-            GatewayIntents = GatewayIntents.All,
+            GatewayIntents = GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMembers | GatewayIntents.Guilds,
             LogLevel = LogSeverity.Debug
         });
 
@@ -110,11 +110,10 @@ public class Startup
         if (!arg.Data.CustomId.StartsWith("confirm-close-ticket-")) return;
 
         await arg.DeferAsync(true);
-        
+
         // Check if the actual text input was valid
         if (arg.Data.Components.FirstOrDefault(x => x.CustomId == "ticket-confirm-text")?.Value == "OK")
         {
-            
             _logger.Information("Closing ticket as it was confirmed");
 
             var ticketDataArray = arg.Data.CustomId.Split('-');
@@ -136,7 +135,8 @@ public class Startup
         }
         else
         {
-            await arg.ErrorAsync("Cannot close ticket", "You need to type `OK` to confirm closure of this ticket!", true);
+            await arg.ErrorAsync("Cannot close ticket", "You need to type `OK` to confirm closure of this ticket!",
+                true);
         }
     }
 

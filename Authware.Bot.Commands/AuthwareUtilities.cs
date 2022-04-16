@@ -40,8 +40,8 @@ public class AuthwareUtilities : InteractionModuleBase<SocketInteractionContext>
         embed.AddField("Users", json.UserCount);
         embed.AddField("Roles",
             json.Roles.Aggregate(string.Empty, (current, s) => current + $"{s}, ").TrimEnd(' ').TrimEnd(','));
-        embed.AddField("Plan expiration", json.PlanExpire);
-        embed.AddField("Account created at", json.DateCreated);
+        embed.AddField("Plan expiration", $"<t:{new DateTimeOffset(json.PlanExpire).ToUnixTimeSeconds()}:R>");
+        embed.AddField("Account created at", $"<t:{new DateTimeOffset(json.DateCreated).ToUnixTimeSeconds()}:R>");
 
         await Context.Interaction.FollowupAsync(embed: embed.Build());
     }
