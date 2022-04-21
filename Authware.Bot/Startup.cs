@@ -83,6 +83,7 @@ public class Startup
         {
             UseCompiledLambda = true,
             EnableAutocompleteHandlers = true,
+            ExitOnMissingModalField = true,
             DefaultRunMode = RunMode.Async
         });
 
@@ -171,24 +172,16 @@ public class Startup
 
     private async Task ClientOnInteractionCreated(SocketInteraction arg)
     {
-        switch (arg.Type)
+        var context = new SocketInteractionContext(_client, arg);
+        var result = await _interaction.ExecuteCommandAsync(context, _provider);
+
+        if (!result.IsSuccess && arg.Type == InteractionType.ApplicationCommand)
         {
-            case InteractionType.ApplicationCommand:
-            {
-                var context = new SocketInteractionContext(_client, arg);
-                var result = await _interaction.ExecuteCommandAsync(context, _provider);
+            var errorEmbed = new AuthwareEmbedBuilder()
+                .WithDescription($"**Error: **{result.ErrorReason}")
+                .Build();
 
-                if (!result.IsSuccess)
-                {
-                    var errorEmbed = new AuthwareEmbedBuilder()
-                        .WithDescription($"**Error: **{result.ErrorReason}")
-                        .Build();
-
-                    await context.Interaction.FollowupAsync(embed: errorEmbed, ephemeral: true);
-                }
-
-                break;
-            }
+            await context.Interaction.RespondAsync(embed: errorEmbed, ephemeral: true);
         }
     }
 
@@ -196,17 +189,23 @@ public class Startup
     {
 #if DEBUG
         _logger.Information("Registering slash commands to guild...");
-        await _interaction.RegisterCommandsToGuildAsync(Configuration.GetValue<ulong>("TestingGuildId"));
+        var registeredCommands = await _interaction.RegisterCommandsToGuildAsync(Configuration.GetValue<ulong>("TestingGuildId"));
+        foreach (var command in registeredCommands)
+        {
+            _logger.Information("Registered {Name}", command.Name);
+        }
 #else
         _logger.Information("Registering slash commands globally...");
         await _interaction.RegisterCommandsGloballyAsync();
 #endif
 
+#if RELEASE
         _logger.Information("Initializing Lavalink...");
         await _provider.GetRequiredService<IAudioService>().InitializeAsync();
 
         _logger.Information("Initializing inactivity tracking...");
         _provider.GetRequiredService<InactivityTrackingService>().BeginTracking();
+#endif
 
         await _client.SetGameAsync("the #1 cloud authentication solution");
     }
@@ -227,10 +226,12 @@ public class Startup
             .AddSingleton(_client)
             .AddSingleton(_interaction)
             .AddSingleton(Configuration)
+#if RELEASE
             .AddSingleton<ILavalinkCache>(_lavalinkCache)
             .AddSingleton<IAudioService>(_lavalinkNode)
             .AddSingleton<IDiscordClientWrapper>(_clientWrapper)
             .AddSingleton(_inactivityTracking)
+#endif
             .AddSingleton<LoggingService>()
             .AddSingleton<IWritableConfigurationService<AuthwareConfiguration>,
                 WritableConfigurationService<AuthwareConfiguration>>()
