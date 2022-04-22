@@ -1,8 +1,11 @@
-﻿using Authware.Bot.Common;
+﻿using System.Net.Sockets;
+using Authware.Bot.Common;
 using Authware.Bot.Common.Models;
 using Authware.Bot.Common.Utils;
 using Discord;
 using Discord.Interactions;
+using Discord.Rest;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 
 namespace Authware.Bot.Commands;
@@ -41,8 +44,19 @@ public class Tickets : InteractionModuleBase<SocketInteractionContext>
                                         GuildPermissions.None, Color.Default,
                                         false, true);
 
+        var ticketCategory = Context.Guild.CategoryChannels.FirstOrDefault(x =>
+            x.Name.Equals("tickets", StringComparison.OrdinalIgnoreCase)) ?? (ICategoryChannel?) await Context.Guild.CreateCategoryChannelAsync("Tickets", properties =>
+        {
+            properties.Position = Context.Guild.Channels.MaxBy(x => x.Position).Position + 1;
+        });
+
         // Create the actual ticket channel
-        var ticketChannel = await Context.Guild.CreateTextChannelAsync($"ticket-{Context.User.Id}");
+        var ticketChannel = await Context.Guild.CreateTextChannelAsync($"ticket-{Context.User.Id}", properties =>
+        {
+            properties.Topic =
+                $"Support ticket for {Context.User.Username}#{Context.User.Discriminator} regarding an issue relating to {type.ToString().ToLower()}";
+            if (ticketCategory is not null) properties.CategoryId = ticketCategory.Id;
+        });
 
         await ticketChannel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole,
             OverwritePermissions.DenyAll(ticketChannel));
@@ -60,8 +74,10 @@ public class Tickets : InteractionModuleBase<SocketInteractionContext>
             .WithButton("Close", $"close-ticket-{Context.User.Id}", ButtonStyle.Danger)
             .Build();
 
-        await ticketChannel.SendMessageAsync($"{Context.User.Mention} {authorizedSupportRole.Mention}",
+        var message = await ticketChannel.SendMessageAsync($"{Context.User.Mention} {authorizedSupportRole.Mention}",
             embed: ticketEmbed, components: ticketComponent);
+
+        await message.PinAsync();
 
         await Context.Interaction.SuccessAsync("Ticket created",
             $"Your ticket has been created, check out {ticketChannel.Mention}!", true);

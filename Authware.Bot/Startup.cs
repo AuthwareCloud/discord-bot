@@ -1,7 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Reflection;
 using Authware.Bot.Commands;
-using Authware.Bot.Common;
 using Authware.Bot.Common.Models;
 using Authware.Bot.Common.Utils;
 using Authware.Bot.Services;
@@ -112,33 +111,49 @@ public class Startup
 
         await arg.DeferAsync(true);
 
+        var closureReason = arg.Data.Components.FirstOrDefault(x => x.CustomId == "ticket-close-text")?.Value;
+        var feedback = arg.Data.Components.FirstOrDefault(x => x.CustomId == "ticket-feedback-text")?.Value;
+
         // Check if the actual text input was valid
-        if (arg.Data.Components.FirstOrDefault(x => x.CustomId == "ticket-confirm-text")?.Value == "OK")
+        _logger.Information("Closing ticket as it was confirmed");
+
+        var userId = arg.Data.CustomId.Split('-').LastOrDefault();
+        if (!ulong.TryParse(userId, out var validUserId)) return;
+        var ticketUser = await _client.GetUserAsync(validUserId);
+
+        // Delete the channel the interaction was fired in
+        if (arg.Channel is not SocketTextChannel ticketChannel) return;
+
+        await ticketChannel.DeleteAsync();
+
+        // Notify the user it was closed
+        var closureEmbed = new AuthwareEmbedBuilder()
+            .WithTitle("Ticket has been closed")
+            .WithDescription(
+                "Hi there, the ticket you opened has been closed by either you or a staff member.")
+            .AddField("Reason", closureReason ?? "N/A")
+            .Build();
+
+        if (feedback is not null)
         {
-            _logger.Information("Closing ticket as it was confirmed");
+            var logChannel =
+                ticketChannel.Guild.TextChannels.FirstOrDefault(x =>
+                    x.Name.Equals(Configuration.GetValue<string>("LogChannel"), StringComparison.OrdinalIgnoreCase));
 
-            var ticketDataArray = arg.Data.CustomId.Split('-');
-            var userId = ulong.Parse(ticketDataArray.LastOrDefault());
-            var ticketUser = await _client.GetUserAsync(userId);
+            if (logChannel is not null)
+            {
+                var feedbackEmbed = new AuthwareEmbedBuilder()
+                    .WithTitle("Ticket has been closed")
+                    .WithDescription($"The ticket {arg.Channel.Name} has been closed by the end-user")
+                    .AddField("Reason", closureReason ?? "N/A")
+                    .AddField("Feedback", feedback)
+                    .Build();
 
-            // Delete the channel the interaction was fired in
-            var ticketChannel = arg.Channel as SocketTextChannel;
-            await ticketChannel.DeleteAsync();
-
-            // Notify the user it was closed
-            var closureEmbed = new AuthwareEmbedBuilder()
-                .WithTitle("Ticket has been closed")
-                .WithDescription(
-                    "Hi there, the ticket you opened has been closed by either you or a staff member.")
-                .Build();
-
-            await ticketUser.SendMessageAsync(embed: closureEmbed);
+                await logChannel.SendMessageAsync(embed: feedbackEmbed);
+            }
         }
-        else
-        {
-            await arg.ErrorAsync("Cannot close ticket", "You need to type `OK` to confirm closure of this ticket!",
-                true);
-        }
+
+        await ticketUser.SendMessageAsync(embed: closureEmbed);
     }
 
     private async Task HandleButtonExecuted(SocketMessageComponent arg)
@@ -151,14 +166,30 @@ public class Startup
 
                 _logger.Information("Confirming ticket closure");
 
-                // Do a confirm modal
-                var confirmDeleteModal = new ModalBuilder()
-                    .WithTitle("Confirm closing ticket")
-                    .WithCustomId("confirm-" + arg.Data.CustomId)
-                    .AddTextInput("Type 'OK' to confirm and close the ticket", "ticket-confirm-text")
-                    .Build();
+                var userId = arg.Data.CustomId.Split('-').LastOrDefault();
+                if (!ulong.TryParse(userId, out var validUserId)) return;
 
-                await arg.RespondWithModalAsync(confirmDeleteModal);
+                Modal modal;
+
+                if (arg.User.Id != validUserId)
+                    // Do a confirm modal
+                    modal = new ModalBuilder()
+                        .WithTitle("Confirm closing ticket")
+                        .WithCustomId("confirm-" + arg.Data.CustomId)
+                        .AddTextInput("Why are you closing the ticket?", "ticket-close-text", TextInputStyle.Short,
+                            "The issue was...", 0, 100, true)
+                        .Build();
+                else
+                    modal = new ModalBuilder()
+                        .WithTitle("Confirm closing ticket")
+                        .WithCustomId("confirm-" + arg.Data.CustomId)
+                        .AddTextInput("Why are you closing the ticket?", "ticket-close-text", TextInputStyle.Short,
+                            "The issue was...", 0, 100, true)
+                        .AddTextInput("Any feedback for how this ticket was handled?", "ticket-feedback-text",
+                            TextInputStyle.Paragraph, "I really enjoyed...", 0, 1000, false)
+                        .Build();
+
+                await arg.RespondWithModalAsync(modal);
                 break;
             }
             default:
@@ -189,11 +220,9 @@ public class Startup
     {
 #if DEBUG
         _logger.Information("Registering slash commands to guild...");
-        var registeredCommands = await _interaction.RegisterCommandsToGuildAsync(Configuration.GetValue<ulong>("TestingGuildId"));
-        foreach (var command in registeredCommands)
-        {
-            _logger.Information("Registered {Name}", command.Name);
-        }
+        var registeredCommands =
+            await _interaction.RegisterCommandsToGuildAsync(Configuration.GetValue<ulong>("TestingGuildId"));
+        foreach (var command in registeredCommands) _logger.Information("Registered {Name}", command.Name);
 #else
         _logger.Information("Registering slash commands globally...");
         await _interaction.RegisterCommandsGloballyAsync();
@@ -226,12 +255,10 @@ public class Startup
             .AddSingleton(_client)
             .AddSingleton(_interaction)
             .AddSingleton(Configuration)
-#if RELEASE
             .AddSingleton<ILavalinkCache>(_lavalinkCache)
             .AddSingleton<IAudioService>(_lavalinkNode)
             .AddSingleton<IDiscordClientWrapper>(_clientWrapper)
             .AddSingleton(_inactivityTracking)
-#endif
             .AddSingleton<LoggingService>()
             .AddSingleton<IWritableConfigurationService<AuthwareConfiguration>,
                 WritableConfigurationService<AuthwareConfiguration>>()

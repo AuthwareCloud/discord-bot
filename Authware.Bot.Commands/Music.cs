@@ -11,7 +11,6 @@ namespace Authware.Bot.Commands;
 
 public class Music : InteractionModuleBase<SocketInteractionContext>
 {
-#if RELEASE
     private readonly IAudioService _audioService;
 
     public Music(IAudioService audioService)
@@ -204,5 +203,4 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         await Context.Interaction.FollowupAsync(embed: embed);
     }
-#endif
 }

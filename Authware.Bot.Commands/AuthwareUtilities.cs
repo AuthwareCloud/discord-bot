@@ -67,10 +67,7 @@ public class AuthwareUtilities : InteractionModuleBase<SocketInteractionContext>
         var appends = 0;
         if (!string.IsNullOrWhiteSpace(roleId))
         {
-            urlBuilder.Append(appends > 0
-                ? $"&roleId={roleId}"
-                : $"?roleId={roleId}");
-
+            urlBuilder.Append($"?roleId={roleId}");
             appends++;
         }
         
@@ -108,23 +105,26 @@ public class AuthwareUtilities : InteractionModuleBase<SocketInteractionContext>
         var response = await client.GetAsync($"/user/by-did/{Context.User.Id}");
         var json = JsonSerializer.Deserialize<AuthwareProfile>(await response.Content.ReadAsStringAsync());
 
-        if (json.Code != 0)
+        if (json is null || json.Code != 0)
             await Context.Interaction.ErrorAsync("Account not linked",
                 "It seems like your Discord account hasn't been linked to Authware. In-order to use these types of commands, you need to link your account so we know who you are",
                 false);
 
         var embed = new AuthwareEmbedBuilder()
-            .WithTitle($"{json.UserName}")
+            .WithTitle($"{json?.UserName}")
             .WithThumbnailUrl(Context.User.GetAvatarUrl());
-
-        embed.AddField("ID", json.Id);
-        embed.AddField("Applications", json.AppCount);
-        embed.AddField("APIs", json.ApiCount);
-        embed.AddField("Users", json.UserCount);
-        embed.AddField("Roles",
-            json.Roles.Aggregate(string.Empty, (current, s) => current + $"{s}, ").TrimEnd(' ').TrimEnd(','));
-        embed.AddField("Plan expiration", $"<t:{new DateTimeOffset(json.PlanExpire).ToUnixTimeSeconds()}:R>");
-        embed.AddField("Account created at", $"<t:{new DateTimeOffset(json.DateCreated).ToUnixTimeSeconds()}:R>");
+        
+        if (json is not null)
+        {
+            embed.AddField("ID", json.Id);
+            embed.AddField("Applications", json.AppCount);
+            embed.AddField("APIs", json.ApiCount);
+            embed.AddField("Users", json.UserCount);
+            embed.AddField("Roles",
+                json.Roles.Aggregate(string.Empty, (current, s) => current + $"{s}, ").TrimEnd(' ').TrimEnd(','));
+            embed.AddField("Plan expiration", $"<t:{new DateTimeOffset(json.PlanExpire).ToUnixTimeSeconds()}:R>");
+            embed.AddField("Account created at", $"<t:{new DateTimeOffset(json.DateCreated).ToUnixTimeSeconds()}:R>");
+        }
 
         await Context.Interaction.FollowupAsync(embed: embed.Build());
     }
