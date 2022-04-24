@@ -39,6 +39,8 @@
     <ItemGroup>
       <ProjectReference Include="..\Authware.Bot.Commands\Authware.Bot.Commands.csproj" />
       <ProjectReference Include="..\Authware.Bot.Services\Authware.Bot.Services.csproj" />
+      <ProjectReference Include="..\Authware.Bot.Shared\Authware.Bot.Shared.csproj" />
+      <ProjectReference Include="..\Authware.Bot.Webhook\Authware.Bot.Webhook\Authware.Bot.Webhook.csproj" />
     </ItemGroup>
 
     <ItemGroup>

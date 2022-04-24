@@ -5,6 +5,7 @@ using Authware.Bot.Common.Models;
 using Authware.Bot.Common.Utils;
 using Authware.Bot.Services;
 using Authware.Bot.Services.Interfaces;
+using Authware.Bot.Shared;
 using Discord;
 using Discord.Interactions;
 using Discord.WebSocket;
@@ -28,7 +29,6 @@ public class Startup
     private readonly DiscordClientWrapper _clientWrapper;
     private readonly LavalinkCache _lavalinkCache;
     private readonly InactivityTrackingService _inactivityTracking;
-    private readonly LavalinkLogger _lavalinkLogger;
 
     private IConfiguration Configuration { get; }
 
@@ -53,14 +53,14 @@ public class Startup
 #endif
             .CreateLogger();
 
-        _lavalinkLogger = new LavalinkLogger(_logger);
+        var lavalinkLogger = new LavalinkLogger(_logger);
 
         var lavalinkSection = Configuration.GetSection("LavalinkOptions");
 
         _client = client ?? new DiscordSocketClient(new DiscordSocketConfig
         {
             DefaultRetryMode = RetryMode.RetryRatelimit,
-            GatewayIntents = GatewayIntents.GuildVoiceStates | GatewayIntents.GuildMembers | GatewayIntents.Guilds,
+            GatewayIntents = GatewayIntents.All,
             LogLevel = LogSeverity.Debug
         });
 
@@ -76,7 +76,7 @@ public class Startup
             Label = lavalinkSection["NodeId"],
             RestUri = lavalinkSection["RestEndpoint"],
             WebSocketUri = lavalinkSection["WebsocketEndpoint"]
-        }, _clientWrapper, _lavalinkLogger, _lavalinkCache);
+        }, _clientWrapper, lavalinkLogger, _lavalinkCache);
 
         _interaction = interaction ?? new InteractionService(_client, new InteractionServiceConfig
         {
@@ -96,6 +96,7 @@ public class Startup
 
         // This stops commands from not getting registered.
         _provider = BuildServiceProvider();
+        Globals.ServiceProvider = _provider;
 
         _interaction.AddModulesAsync(typeof(CommandsEntryPoint).Assembly, _provider);
 
@@ -244,6 +245,8 @@ public class Startup
         _provider.GetRequiredService<LoggingService>();
         // _provider.GetRequiredService<FilterService>();
         await _provider.GetRequiredService<IStartupService>().StartAsync();
+
+        Webhook.Startup.Run();
 
         await Task.Delay(-1);
     }
