@@ -131,7 +131,7 @@ public class Startup
             .WithTitle("Ticket has been closed")
             .WithDescription(
                 "Hi there, the ticket you opened has been closed by either you or a staff member.")
-            .AddField("Reason", closureReason ?? "N/A")
+            .AddField("> Reason", closureReason ?? "N/A")
             .Build();
 
         if (feedback is not null)
@@ -145,8 +145,8 @@ public class Startup
                 var feedbackEmbed = new AuthwareEmbedBuilder()
                     .WithTitle("Ticket has been closed")
                     .WithDescription($"The ticket {arg.Channel.Name} has been closed by the end-user")
-                    .AddField("Reason", closureReason ?? "N/A")
-                    .AddField("Feedback", feedback)
+                    .AddField("> Reason", closureReason ?? "N/A")
+                    .AddField("> Feedback", feedback)
                     .Build();
 
                 await logChannel.SendMessageAsync(embed: feedbackEmbed);

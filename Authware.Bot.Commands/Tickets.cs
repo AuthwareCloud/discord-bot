@@ -67,7 +67,7 @@ public class Tickets : InteractionModuleBase<SocketInteractionContext>
         var ticketEmbed = new AuthwareEmbedBuilder()
             .WithTitle($"Welcome, {Context.User.Username}!")
             .WithDescription("A support representative should be with you shortly, please be patient!")
-            .AddField("Topic", type)
+            .AddField("> Topic", type)
             .Build();
 
         var ticketComponent = new ComponentBuilder()

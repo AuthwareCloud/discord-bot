@@ -22,8 +22,8 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
     public async Task LeaveAsync()
     {
         await Context.Interaction.DeferAsync();
-        
-        var guildUser = Context.User as SocketGuildUser;
+
+        if (Context.User is not SocketGuildUser guildUser) return;
         if (guildUser.VoiceChannel is null)
         {
             await Context.Interaction.ErrorAsync("Cannot leave", "You must be in a voice channel for me to leave!", false);
@@ -31,14 +31,15 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         }
 
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
-
-        if (player is not {State: PlayerState.Playing})
+        switch (player)
         {
-            await Context.Interaction.ErrorAsync("Cannot leave", "There are currently no songs queued!", false);
-            return;
+            case null:
+                return;
+            case {State: PlayerState.Playing}:
+                await player.StopAsync();
+                break;
         }
-        
-        await player.StopAsync();
+
         await player.DestroyAsync();
         await player.DisconnectAsync();
 
@@ -49,8 +50,8 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
     public async Task ReplayAsync()
     {
         await Context.Interaction.DeferAsync();
-        
-        var guildUser = Context.User as SocketGuildUser;
+
+        if (Context.User is not SocketGuildUser guildUser) return;
         if (guildUser.VoiceChannel is null)
         {
             await Context.Interaction.ErrorAsync("Cannot replay", "You must be in a voice channel to play a song!", false);
@@ -118,19 +119,19 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
             .WithTitle($"Queue - {player.Queue.Count} song(s)");
 
         // This adds the currently playing track to the list of fields for the song queue
-        var currentTrackContext = player.CurrentTrack?.Context as TrackContext;
+        if (player.CurrentTrack?.Context is not TrackContext currentTrackContext) return;
         var currentTrackRequester = await Context.Client.GetUserAsync(currentTrackContext.RequesterId);
 
-        embed.AddField($"**Currently playing: {player.CurrentTrack?.Author} - {player.CurrentTrack?.Title}**",
+        embed.AddField($"> **Currently playing: {player.CurrentTrack?.Author} - {player.CurrentTrack?.Title}**",
             $"**Added by: **{currentTrackRequester.Mention}\n**Duration: **{player.CurrentTrack?.Duration.ToHms()}\n**Position: **{player.Position.Position.ToHms()}");
 
         // Loops through each song in the queue and adds it to the field list
         foreach (var track in player.Queue)
         {
-            var trackContext = track.Context as TrackContext;
+            if (track.Context is not TrackContext trackContext) return;
             var user = await Context.Client.GetUserAsync(trackContext.RequesterId);
 
-            embed.AddField($"**{track.Author} - {track.Title}**",
+            embed.AddField($"> {track.Author} - {track.Title}",
                 $"**Added by: **{user.Mention}\n**Duration: **{track.Duration.ToHms()}");
         }
 
@@ -196,8 +197,8 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         var embed = new AuthwareEmbedBuilder()
             .WithTitle($"{track.Author} - {track.Title}")
-            .AddField("Duration", track.Duration.ToHms(), true)
-            .AddField("Provider", track.Provider, true)
+            .AddField("> Duration", track.Duration.ToHms())
+            .AddField("> Provider", track.Provider)
             .WithUrl(track.Source)
             .Build();
 

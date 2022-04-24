@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Reflection;
+using System.Text;
 using Authware.Bot.Common;
 using Authware.Bot.Common.Utils;
 using Discord;
@@ -82,14 +83,14 @@ public class Utility : InteractionModuleBase<SocketInteractionContext>
 
         var embed = new AuthwareEmbedBuilder()
             .WithThumbnailUrl(user.GetAvatarUrl())
-            .AddField("Username", user.Username)
-            .AddField("Nickname", guildUser?.Nickname ?? "None")
-            .AddField("Discriminator", user.Discriminator)
-            .AddField("Status", user.Status)
-            .AddField("Created at", user.CreatedAt)
-            .AddField("Roles", string.IsNullOrWhiteSpace(roles) ? "None" : roles)
-            .AddField("Active clients", string.IsNullOrWhiteSpace(clients) ? "None" : clients)
-            .AddField("Joined at", guildUser.JoinedAt)
+            .AddField("> Username", user.Username)
+            .AddField("> Nickname", guildUser?.Nickname ?? "None")
+            .AddField("> Discriminator", user.Discriminator)
+            .AddField("> Status", user.Status)
+            .AddField("> Created at", user.CreatedAt)
+            .AddField("> Roles", string.IsNullOrWhiteSpace(roles) ? "None" : roles)
+            .AddField("> Active clients", string.IsNullOrWhiteSpace(clients) ? "None" : clients)
+            .AddField("> Joined at", guildUser.JoinedAt)
             .Build();
 
         await Context.Interaction.FollowupAsync(embed: embed, ephemeral: true);
@@ -108,11 +109,7 @@ public class Utility : InteractionModuleBase<SocketInteractionContext>
 
         if (!safeMessages.Any())
         {
-            var errorEmbed = new AuthwareEmbedBuilder()
-                .WithDescription("**Error: **There is nothing for me to delete.")
-                .Build();
-
-            await Context.Interaction.FollowupAsync(embed: errorEmbed, ephemeral: true);
+            await Context.Interaction.ErrorAsync("Cannot delete messages", "There is nothing for me to delete", true);
             return;
         }
 
@@ -189,6 +186,24 @@ public class Utility : InteractionModuleBase<SocketInteractionContext>
         var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(message.Content));
 
         await Context.Interaction.FollowupAsync(base64, ephemeral: true);
+    }
+
+    [RequireContext(ContextType.Guild)]
+    [SlashCommand("info", "Returns certain information about the bot")]
+    public async Task InfoAsync()
+    {
+        await Context.Interaction.DeferAsync();
+
+        var embed = new AuthwareEmbedBuilder()
+            .WithTitle("About the bot")
+            .AddField("> Version", $"Authware.Bot v{Assembly.GetEntryAssembly()?.GetName().Version}")
+            .AddField("> Repository", "https://github.com/AuthwareCloud/discord-bot")
+            .AddField("> OS", Environment.OSVersion.VersionString)
+            .AddField("> Total servers", Context.Client.Guilds.Count)
+            .AddField("> Add the bot!",
+                "https://discord.com/api/oauth2/authorize?client_id=943372190735269949&permissions=8&scope=bot%20applications.commands");
+
+        await Context.Interaction.FollowupAsync(embed: embed.Build());
     }
 
     [RequireContext(ContextType.Guild)]

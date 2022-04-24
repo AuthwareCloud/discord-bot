@@ -116,14 +116,14 @@ public class AuthwareUtilities : InteractionModuleBase<SocketInteractionContext>
         
         if (json is not null)
         {
-            embed.AddField("ID", json.Id);
-            embed.AddField("Applications", json.AppCount);
-            embed.AddField("APIs", json.ApiCount);
-            embed.AddField("Users", json.UserCount);
-            embed.AddField("Roles",
+            embed.AddField("> ID", json.Id);
+            embed.AddField("> Applications", json.AppCount);
+            embed.AddField("> APIs", json.ApiCount);
+            embed.AddField("> Users", json.UserCount);
+            embed.AddField("> Roles",
                 json.Roles.Aggregate(string.Empty, (current, s) => current + $"{s}, ").TrimEnd(' ').TrimEnd(','));
-            embed.AddField("Plan expiration", $"<t:{new DateTimeOffset(json.PlanExpire).ToUnixTimeSeconds()}:R>");
-            embed.AddField("Account created at", $"<t:{new DateTimeOffset(json.DateCreated).ToUnixTimeSeconds()}:R>");
+            embed.AddField("> Plan expiration", $"<t:{new DateTimeOffset(json.PlanExpire).ToUnixTimeSeconds()}:R>");
+            embed.AddField("> Account created at", $"<t:{new DateTimeOffset(json.DateCreated).ToUnixTimeSeconds()}:R>");
         }
 
         await Context.Interaction.FollowupAsync(embed: embed.Build());
