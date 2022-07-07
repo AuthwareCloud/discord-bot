@@ -136,7 +136,7 @@ public class Startup
                 options.AddConsole();
 #else
                 options.SetMinimumLevel(LogLevel.Information);
-                options.AddSystemdConsole():
+                options.AddSystemdConsole();
 #endif
             })
             .AddSingleton(_client)
