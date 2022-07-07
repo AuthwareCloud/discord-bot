@@ -147,6 +147,7 @@ public class Startup
             .AddSingleton<IDiscordClientWrapper>(_clientWrapper)
             .AddSingleton(_inactivityTracking)
             .AddSingleton<LoggingService>()
+            .AddSingleton<ServerJoinedService>()
             .AddSingleton<IWritableConfigurationService<AuthwareConfiguration>,
                 WritableConfigurationService<AuthwareConfiguration>>()
             .AddSingleton<FilterService>()
