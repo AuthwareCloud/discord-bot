@@ -13,7 +13,7 @@ public class BoostService
     {
         _configuration = configuration;
         _factory = factory;
-        client.MessageReceived += MessageReceived;
+        // client.MessageReceived += MessageReceived;
     }
 
     private async Task MessageReceived(SocketMessage arg)
@@ -25,7 +25,7 @@ public class BoostService
         {
             using var client = _factory.CreateClient("authware");
             
-            var response = await client.GetAsync()
+            // var response = await client.GetAsync()
         }
     }
 }
