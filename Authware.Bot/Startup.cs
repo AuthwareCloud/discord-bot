@@ -100,15 +100,15 @@ public class Startup
         foreach (var command in registeredCommands)
             _provider.GetRequiredService<ILogger<Startup>>().LogInformation("Registered {Name}", command.Name);
 #else
-        _provider.GetRequiredService<ILogger<Startup>>().Information("Registering slash commands globally...");
+        _provider.GetRequiredService<ILogger<Startup>>().LogInformation("Registering slash commands globally...");
         await _interaction.RegisterCommandsGloballyAsync();
 #endif
 
 #if RELEASE
-        _provider.GetRequiredService<ILogger<Startup>>().Information("Initializing Lavalink...");
+        _provider.GetRequiredService<ILogger<Startup>>().LogInformation("Initializing Lavalink...");
         await _provider.GetRequiredService<IAudioService>().InitializeAsync();
 
-        _provider.GetRequiredService<ILogger<Startup>>().Information("Initializing inactivity tracking...");
+        _provider.GetRequiredService<ILogger<Startup>>().LogInformation("Initializing inactivity tracking...");
         _provider.GetRequiredService<InactivityTrackingService>().BeginTracking();
 #endif
 
