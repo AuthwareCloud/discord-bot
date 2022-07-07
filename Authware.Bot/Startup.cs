@@ -118,6 +118,7 @@ public class Startup
     public async Task RunAsync()
     {
         _provider.GetRequiredService<LoggingService>();
+        _provider.GetRequiredService<InteractionHandlerService>();
         // _provider.GetRequiredService<FilterService>();
         await _provider.GetRequiredService<IStartupService>().StartAsync();
 
@@ -148,6 +149,7 @@ public class Startup
             .AddSingleton(_inactivityTracking)
             .AddSingleton<LoggingService>()
             .AddSingleton<ServerJoinedService>()
+            .AddSingleton<InteractionHandlerService>()
             .AddSingleton<IWritableConfigurationService<AuthwareConfiguration>,
                 WritableConfigurationService<AuthwareConfiguration>>()
             .AddSingleton<FilterService>()
