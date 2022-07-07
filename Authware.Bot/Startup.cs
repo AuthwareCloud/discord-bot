@@ -100,7 +100,7 @@ public class Startup
         foreach (var command in registeredCommands)
             _provider.GetRequiredService<ILogger<Startup>>().LogInformation("Registered {Name}", command.Name);
 #else
-        _logger.Information("Registering slash commands globally...");
+        _provider.GetRequiredService<ILogger<Startup>>().Information("Registering slash commands globally...");
         await _interaction.RegisterCommandsGloballyAsync();
 #endif
 
