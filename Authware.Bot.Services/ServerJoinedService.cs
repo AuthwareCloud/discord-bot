@@ -26,7 +26,8 @@ public class ServerJoinedService
         _logger.LogInformation("Bot has joined a new server!");
 
         var embed = GetEmbed();
-        
+        await Task.Delay(TimeSpan.FromSeconds(2));
+
         try
         {
             await arg.DefaultChannel.SendMessageAsync(embed: embed);
