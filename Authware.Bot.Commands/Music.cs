@@ -1,11 +1,10 @@
 ﻿using Authware.Bot.Common;
 using Authware.Bot.Common.Models;
-using Authware.Bot.Common.Utils;
+using Authware.Bot.Commands.Utils;
 using Discord.Interactions;
 using Discord.WebSocket;
 using Lavalink4NET;
 using Lavalink4NET.Player;
-using Lavalink4NET.Rest;
 
 namespace Authware.Bot.Commands;
 
@@ -23,12 +22,7 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
     {
         await Context.Interaction.DeferAsync();
 
-        if (Context.User is not SocketGuildUser guildUser) return;
-        if (guildUser.VoiceChannel is null)
-        {
-            await Context.Interaction.ErrorAsync("Cannot leave", "You must be in a voice channel for me to leave!", false);
-            return;
-        }
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
 
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
         switch (player)
@@ -46,18 +40,58 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         await Context.Interaction.SuccessAsync("Bye!", "Left the voice channel!", false);
     }
 
+    [SlashCommand("pause", "Pauses the current song")]
+    public async Task PauseAsync()
+    {
+        await Context.Interaction.DeferAsync();
+
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
+
+        var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
+
+        if (player is not {State: PlayerState.Playing})
+        {
+            await Context.Interaction.ErrorAsync("Cannot pause",
+                "There is currently no song to pause in the first place!", false);
+            return;
+        }
+    }
+
+    [SlashCommand("loop", "Toggles looping the current song")]
+    public async Task LoopAsync(
+        [Summary("state", "The new looping state to set to, by default it will toggle from off and on")]
+        bool? state = null)
+    {
+        await Context.Interaction.DeferAsync();
+
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
+
+        var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
+
+        if (player is not {State: PlayerState.Playing})
+        {
+            await Context.Interaction.ErrorAsync("Cannot loop",
+                "There is currently no song to loop in the first place!", false);
+            return;
+        }
+
+        if (state is null) player.IsLooping = !player.IsLooping;
+        else player.IsLooping = state.Value;
+
+        if (player.IsLooping)
+            await Context.Interaction.SuccessAsync("Looping!", "The current song is now playing on loop", false);
+        else
+            await Context.Interaction.SuccessAsync("Stopped looping", "The current song is no longer playing on loop",
+                false);
+    }
+
     [SlashCommand("replay", "Replays the current song")]
     public async Task ReplayAsync()
     {
         await Context.Interaction.DeferAsync();
 
-        if (Context.User is not SocketGuildUser guildUser) return;
-        if (guildUser.VoiceChannel is null)
-        {
-            await Context.Interaction.ErrorAsync("Cannot replay", "You must be in a voice channel to play a song!", false);
-            return;
-        }
-        
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
+
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
 
         if (player is not {State: PlayerState.Playing})
@@ -65,24 +99,19 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
             await Context.Interaction.ErrorAsync("Cannot replay", "There are currently no songs queued!", false);
             return;
         }
-        
+
         await player.ReplayAsync();
 
         await Context.Interaction.SuccessAsync("Replayed", "Replayed the current song!", false);
     }
 
     [SlashCommand("skip", "Skips to the next song in the queue")]
-    public async Task SkipAsync([Summary("amount", "The amount of tracks to skip, defaults at 1")] ushort amount = 1)
+    public async Task SkipAsync([Summary("amount", "The amount of songs to skip, defaults at 1")] ushort amount = 1)
     {
         await Context.Interaction.DeferAsync();
-        
-        var guildUser = Context.User as SocketGuildUser;
-        if (guildUser.VoiceChannel is null)
-        {
-            await Context.Interaction.ErrorAsync("Cannot skip", "You must be in a voice channel to play a song!", false);
-            return;
-        }
-        
+
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
+
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
 
         if (player is not {State: PlayerState.Playing} || player.Queue.IsEmpty)
@@ -93,13 +122,14 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
 
         if (amount < 1)
         {
-            await Context.Interaction.ErrorAsync("Cannot skip", "You must skip an amount of songs that is greater or equal to one!", false);
+            await Context.Interaction.ErrorAsync("Cannot skip",
+                "You must skip an amount of songs that is greater or equal to one!", false);
             return;
         }
 
         await player.SkipAsync(amount);
 
-        await Context.Interaction.SuccessAsync("Skipped",$"Skipped *{amount}* song(s) ahead!", false);
+        await Context.Interaction.SuccessAsync("Skipped", $"Skipped *{amount}* song(s) ahead!", false);
     }
 
     [SlashCommand("queue", "Gets all the songs in the queue")]
@@ -108,7 +138,6 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         await Context.Interaction.DeferAsync();
 
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
-
         if (player is not {State: PlayerState.Playing})
         {
             await Context.Interaction.ErrorAsync("Cannot show queue", "There are currently no songs queued!", false);
@@ -143,18 +172,13 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
     {
         await Context.Interaction.DeferAsync();
 
-        var guildUser = Context.User as SocketGuildUser;
-        if (guildUser.VoiceChannel is null)
-        {
-            await Context.Interaction.ErrorAsync("Cannot stop playing", "You must be in a voice channel to stop a song!", false);
-            return;
-        }
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
 
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id);
 
         if (player is not {State: PlayerState.Playing})
         {
-            await Context.Interaction.ErrorAsync("Cannot stop playing","There is currently no song playing!", false);
+            await Context.Interaction.ErrorAsync("Cannot stop playing", "There is currently no song playing!", false);
             return;
         }
 
@@ -169,21 +193,18 @@ public class Music : InteractionModuleBase<SocketInteractionContext>
         await Context.Interaction.DeferAsync();
 
         var guildUser = Context.User as SocketGuildUser;
-        if (guildUser.VoiceChannel is null)
-        {
-            await Context.Interaction.ErrorAsync("Cannot play song","You must be in a voice channel to play a song!", false);
-            return;
-        }
+        if (!await Context.IsUserInVoiceChannelAsync()) return;
 
         var player = _audioService.GetPlayer<QueuedLavalinkPlayer>(Context.Guild.Id)
                      ?? await _audioService.JoinAsync<QueuedLavalinkPlayer>(Context.Guild.Id,
-                         guildUser.VoiceChannel.Id);
+                         guildUser!.VoiceChannel.Id);
 
-        var track = await _audioService.GetTrackAsync(song, SearchMode.YouTube);
+        var track = await _audioService.GetTrackAsync(song);
 
         if (track is null)
         {
-            await Context.Interaction.ErrorAsync("Cannot play song","Couldn't find anything from that song query!", false);
+            await Context.Interaction.ErrorAsync("Cannot play song", "Couldn't find anything from that song query!",
+                false);
             return;
         }
 
