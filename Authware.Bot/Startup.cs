@@ -119,6 +119,7 @@ public class Startup
     {
         _provider.GetRequiredService<LoggingService>();
         _provider.GetRequiredService<InteractionHandlerService>();
+        _provider.GetRequiredService<ServerJoinedService>();
         // _provider.GetRequiredService<FilterService>();
         await _provider.GetRequiredService<IStartupService>().StartAsync();
 
