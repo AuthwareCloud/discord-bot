@@ -8,8 +8,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authware.Bot.Commands", "Au
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authware.Bot.Common", "Authware.Bot.Common\Authware.Bot.Common.csproj", "{A7B6EEEB-4543-422B-84BA-7A336F21FE53}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authware.Bot.Webhook", "Authware.Bot.Webhook\Authware.Bot.Webhook\Authware.Bot.Webhook.csproj", "{9C7D3092-FF82-433D-9818-1C59FDA02125}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Authware.Bot.Shared", "Authware.Bot.Shared\Authware.Bot.Shared.csproj", "{5FC6AAF7-9DC5-42C4-B576-125C1BFAA0A1}"
 EndProject
 Global
@@ -34,10 +32,6 @@ Global
 		{A7B6EEEB-4543-422B-84BA-7A336F21FE53}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7B6EEEB-4543-422B-84BA-7A336F21FE53}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7B6EEEB-4543-422B-84BA-7A336F21FE53}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9C7D3092-FF82-433D-9818-1C59FDA02125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9C7D3092-FF82-433D-9818-1C59FDA02125}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9C7D3092-FF82-433D-9818-1C59FDA02125}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9C7D3092-FF82-433D-9818-1C59FDA02125}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5FC6AAF7-9DC5-42C4-B576-125C1BFAA0A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5FC6AAF7-9DC5-42C4-B576-125C1BFAA0A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FC6AAF7-9DC5-42C4-B576-125C1BFAA0A1}.Release|Any CPU.ActiveCfg = Release|Any CPU

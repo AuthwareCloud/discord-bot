@@ -15,15 +15,15 @@
 
     <ItemGroup>
 
-        <PackageReference Include="Discord.Net.WebSocket" Version="3.7.2" />
+        <PackageReference Include="Discord.Net.WebSocket" Version="3.12.0" />
 
-        <PackageReference Include="GenHTTP.Core" Version="6.3.5" />
+        <PackageReference Include="GenHTTP.Core" Version="7.0.0" />
 
-        <PackageReference Include="GenHTTP.Modules.Security" Version="6.3.5" />
-        <PackageReference Include="GenHTTP.Modules.Webservices" Version="6.3.5" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+        <PackageReference Include="GenHTTP.Modules.Security" Version="7.0.0" />
+        <PackageReference Include="GenHTTP.Modules.Webservices" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
 
     </ItemGroup>
 

@@ -48,7 +48,7 @@ public class Startup
         _client = client ?? new DiscordSocketClient(new DiscordSocketConfig
         {
             DefaultRetryMode = RetryMode.RetryRatelimit,
-            GatewayIntents = GatewayIntents.All,
+            GatewayIntents = GatewayIntents.AllUnprivileged,
             LogLevel = LogSeverity.Debug
         });
 
@@ -122,8 +122,6 @@ public class Startup
         _provider.GetRequiredService<ServerJoinedService>();
         // _provider.GetRequiredService<FilterService>();
         await _provider.GetRequiredService<IStartupService>().StartAsync();
-
-        Webhook.Startup.Run();
 
         await Task.Delay(-1);
     }
